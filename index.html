@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>避難マップ - キー設定</title>
+    <style>
+        :root {
+            --bg-color: #f0f3f6;
+            --text-color: #333;
+            --shadow-light: #ffffff;
+            --shadow-dark: #b8bfc6;
+            --accent-color: #4a90e2;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
+            width: 350px;
+            text-align: center;
+        }
+        h2 { margin-bottom: 24px; font-size: 1.5rem; }
+        .hidden { display: none !important; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            background: var(--bg-color);
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+            box-sizing: border-box;
+        }
+        button, .btn-link {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 10px;
+            background: var(--bg-color);
+            box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        button:active, .btn-link:active {
+            box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+        }
+        .loading { font-size: 0.9rem; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loadingView" class="loading">APIキーを確認中...</div>
+
+    <!-- キーが存在する場合 -->
+    <div id="existView" class="hidden">
+        <h2>設定完了済み</h2>
+        <p>APIキーが保存されています。</p>
+        <a href="app.html" class="btn-link">アプリを起動する</a>
+        <button id="deleteKeyBtn" style="color: #e24a4a;">APIキーを削除</button>
+    </div>
+
+    <!-- キーが存在しない場合 -->
+    <div id="inputView" class="hidden">
+        <h2>APIキー設定</h2>
+        <p style="font-size:0.8rem; color:#666;">OpenRouteServiceのAPIキーを入力してください</p>
+        <input type="text" id="orsKeyInput" placeholder="OpenRouteService API Key">
+        <button id="saveKeyBtn">キーを検証して保存</button>
+    </div>
+</div>
+
+<script>
+    // ユニークなキー名（LocalStorageの競合回避）
+    const STORAGE_KEY = 'my_disaster_app_ors_key';
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedKey = localStorage.getItem(STORAGE_KEY);
+        document.getElementById('loadingView').classList.add('hidden');
+
+        if (savedKey) {
+            document.getElementById('existView').classList.remove('hidden');
+        } else {
+            document.getElementById('inputView').classList.remove('hidden');
+        }
+    });
+
+    // キーの保存と簡易検証
+    document.getElementById('saveKeyBtn').addEventListener('click', async () => {
+        const key = document.getElementById('orsKeyInput').value.trim();
+        if (!key) {
+            alert('キーを入力してください。');
+            return;
+        }
+
+        // OpenRouteServiceのキー有効性チェック（ダミーリクエストによる検証）
+        try {
+            const res = await fetch(`https://openrouteservice.org{key}&start=139.0,35.0&end=139.1,35.1`);
+            if (res.status === 403) {
+                alert('無効なAPIキーです。');
+                return;
+            }
+            // 400等のエラーは疎通はできている（キーは通っている）と判断
+            localStorage.setItem(STORAGE_KEY, key);
+            window.location.reload();
+        } catch (error) {
+            alert('通信エラーが発生しました。キーの検証がスキップされましたが、保存します。');
+            localStorage.setItem(STORAGE_KEY, key);
+            window.location.reload();
+        }
+    });
+
+    // キーの削除
+    document.getElementById('deleteKeyBtn').addEventListener('click', () => {
+        if (confirm('APIキーを削除しますか？')) {
+            localStorage.removeItem(STORAGE_KEY);
+            window.location.reload();
+        }
+    });
+</script>
+</body>
+</html>
