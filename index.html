@@ -23,13 +23,13 @@
             color: var(--text-color);
             font-family: 'Helvetica Neue', Arial, sans-serif;
             display: flex;
-            flex-direction: column; /* 縦方向のレイアウトに変更 */
-            align-items: center;    /* 左右中央に揃える */
+            flex-direction: column;
+            align-items: center;    /* 完全に左右中央に固定 */
+            justify-content: center; /* 縦方向も中央に寄せる */
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
-            justify-content: space-between; /* 上下に適度なスペースを空ける */
         }
         .container {
             background: var(--bg-color);
@@ -39,7 +39,7 @@
             width: 100%;
             max-width: 350px;
             text-align: center;
-            margin: auto; /* 上下中央に配置するための調整 */
+            margin-bottom: 20px; /* フッターとの間隔を確保 */
         }
         h2 { margin-bottom: 24px; font-size: 1.5rem; }
         .hidden { display: none !important; }
@@ -50,7 +50,7 @@
             border: none;
             border-radius: 10px;
             background: var(--bg-color);
-            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light); /* 整合性のため微調整 */
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
             box-sizing: border-box;
         }
         button, .btn-link {
@@ -73,18 +73,16 @@
         }
         .loading { font-size: 0.9rem; color: #666; }
 
-        
         /* =====================================================
            フッターのスタイル
         ====================================================== */
         footer {
-            margin-top: 20px;
             padding: 15px;
             text-align: center;
             font-size: 13px;
             color: #555;
             width: 100%;
-            max-width: 350px; /* containerの幅と合わせることでズレを防ぐ */
+            max-width: 350px; /* .container と全く同じ幅に固定 */
             background: var(--bg-color);
             border-radius: 10px;
             box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
@@ -101,7 +99,6 @@
         footer a:hover {
             text-decoration: underline;
         }
-
     </style>
 </head>
 <body>
