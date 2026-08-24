@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>避難マップ - キー設定</title>
-    
+
     <!-- PWA用マニフェストとテーマカラー -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4a90e2">
     <link rel="apple-touch-icon" href="icon-192.png">
-    
+
+    <title>避難地図作成API登録</title>
     <style>
         :root {
             --bg-color: #f0f3f6;
@@ -23,18 +23,23 @@
             color: var(--text-color);
             font-family: 'Helvetica Neue', Arial, sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            flex-direction: column; /* 縦方向のレイアウトに変更 */
+            align-items: center;    /* 左右中央に揃える */
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            justify-content: space-between; /* 上下に適度なスペースを空ける */
         }
         .container {
             background: var(--bg-color);
             padding: 30px;
             border-radius: 20px;
             box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
-            width: 350px;
+            width: 100%;
+            max-width: 350px;
             text-align: center;
+            margin: auto; /* 上下中央に配置するための調整 */
         }
         h2 { margin-bottom: 24px; font-size: 1.5rem; }
         .hidden { display: none !important; }
@@ -45,7 +50,7 @@
             border: none;
             border-radius: 10px;
             background: var(--bg-color);
-            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light); /* 整合性のため微調整 */
             box-sizing: border-box;
         }
         button, .btn-link {
@@ -67,6 +72,36 @@
             box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
         }
         .loading { font-size: 0.9rem; color: #666; }
+
+        
+        /* =====================================================
+           フッターのスタイル
+        ====================================================== */
+        footer {
+            margin-top: 20px;
+            padding: 15px;
+            text-align: center;
+            font-size: 13px;
+            color: #555;
+            width: 100%;
+            max-width: 350px; /* containerの幅と合わせることでズレを防ぐ */
+            background: var(--bg-color);
+            border-radius: 10px;
+            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+            box-sizing: border-box;
+        }
+        footer p {
+            margin: 5px 0;
+        }
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 <body>
@@ -90,6 +125,15 @@
         <button id="saveKeyBtn">キーを検証して保存</button>
     </div>
 </div>
+
+<!-- =========================================================
+     フッター
+========================================================== -->
+<footer id="appFooter">
+    <p><strong>組織名 : </strong>2026 電子機械科</p>
+    <p><strong>Email : </strong>info@gmail.com</p>
+    <p>&copy; 2026 防災マップ著作権者</p>
+</footer>
 
 <script>
     // ユニークなキー名（LocalStorageの競合回避）
@@ -137,30 +181,6 @@
             localStorage.removeItem(STORAGE_KEY);
             window.location.reload();
         }
-    });
-
-    const CACHE_NAME = 'hinan-map-v1';
-    const urlsToCache = [
-      './index.html',
-      'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-      'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
-    ];
-    
-    self.addEventListener('install', (event) => {
-      event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-          return cache.addAll(urlsToCache);
-        })
-      );
-    });
-    
-    self.addEventListener('fetch', (event) => {
-      event.respondWith(
-        caches.match(event.request).then((response) => {
-          return response || fetch(event.request);
-        })
-      );
     });
 </script>
 </body>
