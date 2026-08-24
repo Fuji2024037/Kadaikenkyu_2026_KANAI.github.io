@@ -563,10 +563,18 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
         let startLat, startLng, startName;
 
         if (searchMode === "current") {
-            startName = "現在地";
             const position = await getCurrentLocation();
             startLat = position.coords.latitude;
             startLng = position.coords.longitude;
+            
+            // 現在地の緯度・経度から可能な限りの詳細住所を取得
+            try {
+                const addressStr = await getReverseGeocodingNominatim(startLat, startLng);
+                startName = `現在地（${addressStr}）`;
+            } catch (e) {
+                console.warn("住所の取得に失敗しました", e);
+                startName = "現在地";
+            }
         } else {
             const address = document.getElementById("inputAddress").value.trim();
             if (!address) throw new Error("住所を入力してください。");
@@ -606,7 +614,7 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
         // 表示後にプレビュー比率を計算
         resizeA4Preview();
         
-        // ★修正点：マップ描画処理をUIが表示されてサイズが確定した後に実行
+        // マップ描画処理
         updateMap(startLat, startLng, shelter, route.geometry);
 
     } catch (error) {
@@ -632,6 +640,62 @@ function getCurrentLocation() {
             reject(new Error(message));
         }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     });
+}
+
+// 緯度・経度から都道府県、市区町村、町名、番地等の全パーツを網羅して結合する関数
+async function getReverseGeocodingNominatim(lat, lng) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=ja`;
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'EvacuationMapApp/1.0'
+        }
+    });
+    if (!response.ok) throw new Error("現在地の住所取得に失敗しました。");
+    const data = await response.json();
+    if (!data) throw new Error("現在地の住所が見つかりませんでした。");
+
+    // 1. addressオブジェクトのすべての階層パーツを順番に網羅して結合
+    if (data.address) {
+        const addr = data.address;
+        const keysOrder = [
+            'state', 'province', 
+            'county', 
+            'city', 'town', 'village', 
+            'city_district', 'suburb', 
+            'neighbourhood', 'block', 
+            'road', 'house_number'
+        ];
+        
+        let parts = [];
+        for (let key of keysOrder) {
+            if (addr[key]) {
+                let val = String(addr[key]).trim();
+                if (val && !parts.includes(val)) {
+                    parts.push(val);
+                }
+            }
+        }
+        
+        if (parts.length > 0) {
+            return parts.join("");
+        }
+    }
+
+    // 2. addressで取得できない場合は display_name をフォールバックとして解析
+    if (data.display_name) {
+        const parts = data.display_name.split(',');
+        const filteredParts = parts.map(p => p.trim()).filter(p => {
+            if (!p) return false;
+            if (p === "日本" || p === "Japan") return false;
+            if (/^\d{3}-\d{4}$/.test(p)) return false; // 郵便番号形式
+            return true;
+        });
+        if (filteredParts.length > 0) {
+            return filteredParts.join("");
+        }
+    }
+
+    throw new Error("現在地の住所が見つかりませんでした。");
 }
 
 async function getGeocodingGSI(address) {
@@ -734,7 +798,6 @@ function updateMap(startLat, startLng, shelter, coordinates) {
     const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
     routeLayer = L.polyline(latLngs, { color: "#4a90e2", weight: 6, opacity: 0.85, renderer: L.canvas() }).addTo(map);
 
-    // ★修正点：invalidateSize の後に fitBounds を呼び、さらに padding を広めに設定
     setTimeout(() => {
         map.invalidateSize();
         map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
