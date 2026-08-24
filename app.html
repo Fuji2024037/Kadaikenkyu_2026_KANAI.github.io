@@ -759,7 +759,7 @@ async function getORSRoute(startLat, startLng, endLat, endLng, profile) {
             "Accept": "application/geo+json"
         },
         body: JSON.stringify({
-            coordinates: [ [startLng, startLat], [endLng, endLag] ]
+            coordinates: [ [startLng, startLat], [endLng, endLat] ]
         })
     });
 
