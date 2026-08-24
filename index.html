@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>避難マップ - キー設定</title>
+    
+    <!-- PWA用マニフェストとテーマカラー -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90e2">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <style>
         :root {
             --bg-color: #f0f3f6;
@@ -131,6 +137,30 @@
             localStorage.removeItem(STORAGE_KEY);
             window.location.reload();
         }
+    });
+
+    const CACHE_NAME = 'hinan-map-v1';
+    const urlsToCache = [
+      './index.html',
+      'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+      'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+    ];
+    
+    self.addEventListener('install', (event) => {
+      event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+          return cache.addAll(urlsToCache);
+        })
+      );
+    });
+    
+    self.addEventListener('fetch', (event) => {
+      event.respondWith(
+        caches.match(event.request).then((response) => {
+          return response || fetch(event.request);
+        })
+      );
     });
 </script>
 </body>
