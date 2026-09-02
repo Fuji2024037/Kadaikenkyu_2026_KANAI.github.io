@@ -569,8 +569,7 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("appFooter").classList.remove("hidden");
 
         if (!ORS_API_KEY) {
-            showError("OpenRouteServiceのAPIキーが設定されていません。
-ルート検索を行うにはAPIキーが必要です。");
+            showError("OpenRouteServiceのAPIキーが設定されていません。ルート検索を行うにはAPIキーが必要です。");
         }
     } catch (error) {
         console.error(error);
