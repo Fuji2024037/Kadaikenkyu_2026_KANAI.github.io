@@ -191,38 +191,6 @@
         }
 
         /* =====================================================
-           パンくずリストのスタイル
-        ====================================================== */
-        .breadcrumb {
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 10px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .breadcrumb a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .breadcrumb a:hover {
-            opacity: 0.7;
-            text-decoration: underline;
-        }
-        .breadcrumb span {
-            color: #666;
-            font-size: 12px;
-        }
-        .breadcrumb .current {
-            color: var(--text-color);
-            font-weight: bold;
-        }
-
-        /* =====================================================
            フッターのスタイル
         ====================================================== */
         footer {
@@ -349,11 +317,6 @@
 <body>
 
 <div class="main-container">
-    <!-- =========================================================
-         パンくずリスト
-    ========================================================== -->
-    <div id="breadcrumb" class="breadcrumb hidden"></div>
-
     <!-- =========================================================
          起動画面
     ========================================================== -->
@@ -569,12 +532,11 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("appFooter").classList.remove("hidden");
 
         if (!ORS_API_KEY) {
-            showError("OpenRouteServiceのAPIキーが設定されていません。ルート検索を行うにはAPIキーが必要です。");
+            showError("OpenRouteServiceのAPIキーが設定されていません。\nルート検索を行うにはAPIキーが必要です。");
         }
     } catch (error) {
         console.error(error);
-        showError("アプリの起動に失敗しました。
-" + error.message);
+        showError("アプリの起動に失敗しました。\n" + error.message);
     }
 });
 
@@ -585,13 +547,13 @@ function resizeA4Preview() {
     const wrapper = document.getElementById("a4-preview-wrapper");
     const container = document.getElementById("a4-output-container");
     if (!wrapper || !container) return;
-    
+   
     const targetWidth = 842;
     const targetHeight = 595;
-    
+   
     const wrapperWidth = wrapper.clientWidth;
     const scale = Math.min(wrapperWidth / targetWidth, 1.0);
-    
+   
     container.style.transform = `scale(${scale})`;
     wrapper.style.height = `${targetHeight * scale}px`;
 
@@ -623,24 +585,23 @@ function initializeMap() {
 document.getElementById("btnChooseCurrent").addEventListener("click", () => {
     searchMode = "current";
     document.getElementById("searchMenu").classList.add("hidden");
-    
+   
     // フッターを非表示にする
     document.getElementById("appFooter").classList.add("hidden");
 
     document.getElementById("addressInputGroup").classList.remove("hidden");
     document.getElementById("addressLabel").innerText = "現在地名";
     document.getElementById("inputAddress").placeholder = "例：自宅リビング、XX小学校付近";
-    document.getElementById("inputAddress").value = ""; 
+    document.getElementById("inputAddress").value = "";
     document.getElementById("formTitle").innerText = "現在地からの避難設定";
     document.getElementById("formCard").classList.remove("hidden");
     hideError();
-    updateBreadcrumb(2);
 });
 
 document.getElementById("btnChooseArea").addEventListener("click", () => {
     searchMode = "area";
     document.getElementById("searchMenu").classList.add("hidden");
-    
+   
     // フッターを非表示にする
     document.getElementById("appFooter").classList.add("hidden");
 
@@ -650,7 +611,6 @@ document.getElementById("btnChooseArea").addEventListener("click", () => {
     document.getElementById("formTitle").innerText = "指定地域からの避難設定";
     document.getElementById("formCard").classList.remove("hidden");
     hideError();
-    updateBreadcrumb(2);
 });
 
 
@@ -659,7 +619,7 @@ document.getElementById("btnChooseArea").addEventListener("click", () => {
 ========================================================= */
 document.getElementById("btnExecuteSearch").addEventListener("click", async () => {
     hideError();
-    
+   
     const inputName = document.getElementById("inputAddress").value.trim();
     if (!inputName) {
         showError(searchMode === "current" ? "現在地名を入力してください。" : "住所を入力してください。");
@@ -671,7 +631,7 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
 
     try {
         let startLat, startLng;
-        let startName = inputName; 
+        let startName = inputName;
 
         if (searchMode === "current") {
             const position = await getCurrentLocation();
@@ -691,7 +651,7 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
         const disasterType = disasterSelect.value;
 
         const shelter = await fetchEmergencyShelter(startLat, startLng, disasterType);
-        
+       
         const route = await getORSRoute(startLat, startLng, shelter.latitude, shelter.longitude, profileType);
 
         document.getElementById("out-shelter-name").innerText = shelter.place_name;
@@ -707,8 +667,6 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
 
         document.getElementById("processLoading").classList.add("hidden");
         document.getElementById("previewCard").classList.remove("hidden");
-        
-        updateBreadcrumb(3);
 
         resizeA4Preview();
         updateMap(startLat, startLng, shelter, route.geometry);
@@ -717,8 +675,7 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
         console.error("避難ルート生成エラー:", error);
         document.getElementById("processLoading").classList.add("hidden");
         document.getElementById("formCard").classList.remove("hidden");
-        showError("エラーが発生しました。
-" + error.message);
+        showError("エラーが発生しました。\n" + error.message);
     }
 });
 
@@ -808,9 +765,7 @@ async function getORSRoute(startLat, startLng, endLat, endLng, profile) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        throw new Error("ルートの計算に失敗しました。
-HTTP " + response.status + "
-" + errorText);
+        throw new Error("ルートの計算に失敗しました。\nHTTP " + response.status + "\n" + errorText);
     }
     const data = await response.json();
     if (!data.features || data.features.length === 0) throw new Error("ルートが見つかりませんでした。");
@@ -861,7 +816,12 @@ function hideError() {
     document.getElementById("errorMessage").classList.add("hidden");
 }
 
-document.getElementById("btnBackToForm").addEventListener("click", goForm);
+document.getElementById("btnBackToForm").addEventListener("click", () => {
+    document.getElementById("previewCard").classList.add("hidden");
+    document.getElementById("formCard").classList.remove("hidden");
+    hideError();
+    setTimeout(() => { if (map) map.invalidateSize(); }, 300);
+});
 
 /* =========================================================
    A4 PNG保存（html2canvas）
@@ -941,8 +901,7 @@ document.getElementById("btnDownloadImage").addEventListener("click", async () =
 
     } catch (error) {
         console.error("画像生成エラー:", error);
-        showError("A4画像の生成に失敗しました。
-" + error.message);
+        showError("A4画像の生成に失敗しました。\n" + error.message);
     } finally {
         target.style.transform = oldTransform;
         target.style.position = oldPosition;
@@ -983,49 +942,6 @@ function getFileDate() {
     const min = String(date.getMinutes()).padStart(2, "0");
     const sec = String(date.getSeconds()).padStart(2, "0");
     return y + m + d + "_" + h + min + sec;
-}
-
-/* =========================================================
-   パンくずリスト制御・画面遷移
-========================================================= */
-function updateBreadcrumb(step) {
-    const bc = document.getElementById("breadcrumb");
-    if (step === 1) {
-        // ホーム（検索メニュー）では非表示
-        bc.classList.add("hidden");
-    } else if (step === 2) {
-        // 条件指定画面
-        bc.classList.remove("hidden");
-        bc.innerHTML = `<a id="navHome">🏠 ホーム</a> <span>&gt;</span> <span class="current">条件指定</span>`;
-        document.getElementById("navHome").addEventListener("click", goHome);
-    } else if (step === 3) {
-        // プレビュー画面
-        bc.classList.remove("hidden");
-        bc.innerHTML = `<a id="navHome">🏠 ホーム</a> <span>&gt;</span> <a id="navForm">条件指定</a> <span>&gt;</span> <span class="current">プレビュー</span>`;
-        document.getElementById("navHome").addEventListener("click", goHome);
-        document.getElementById("navForm").addEventListener("click", goForm);
-    }
-}
-
-function goHome() {
-    document.getElementById("formCard").classList.add("hidden");
-    document.getElementById("previewCard").classList.add("hidden");
-    document.getElementById("processLoading").classList.add("hidden");
-    document.getElementById("searchMenu").classList.remove("hidden");
-    document.getElementById("appFooter").classList.remove("hidden");
-    hideError();
-    updateBreadcrumb(1);
-}
-
-function goForm() {
-    document.getElementById("previewCard").classList.add("hidden");
-    document.getElementById("processLoading").classList.add("hidden");
-    document.getElementById("searchMenu").classList.add("hidden");
-    document.getElementById("formCard").classList.remove("hidden");
-    document.getElementById("appFooter").classList.add("hidden");
-    hideError();
-    updateBreadcrumb(2);
-    setTimeout(() => { if (map) map.invalidateSize(); }, 300);
 }
 
 </script>
