@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- セキュリティ: Content Security Policy (CSP) -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline';
+        connect-src 'self';
+        img-src 'self' data:;
+        font-src 'self';
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
+
+    <title>エマミル 注意事項</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#001144">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <style>
+        :root {
+            --c-primary: #001144;
+            --c-accent: #0055d4;
+            --c-text: #222222;
+            --c-bg: #f8f9fa;
+            --c-card-bg: #ffffff;
+            --c-focus: #0055d4;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--c-bg);
+            color: var(--c-text);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 0 0 20px 0;
+        }
+
+        header {
+            width: 100%;
+            background-color: var(--c-primary);
+            color: #ffffff;
+            padding: 16px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        .breadcrumb-nav {
+            width: 100%;
+            max-width: 840px;
+            padding: 0 16px;
+            margin-bottom: 16px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            font-size: 0.875rem;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "/";
+            margin: 0 8px;
+            color: #767676;
+        }
+
+        .breadcrumb-item a {
+            color: var(--c-accent);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .breadcrumb-item [aria-current="page"] {
+            color: var(--c-text);
+            font-weight: bold;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 840px;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--c-card-bg);
+            padding: 32px 24px;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: var(--c-primary);
+            border-bottom: 2px solid var(--c-primary);
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: var(--c-primary);
+        }
+
+        p, ul, ol {
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            color: #333333;
+        }
+
+        ul {
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .notice-box {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--c-accent);
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .alert-box {
+            background-color: #fce8e8;
+            border-left: 4px solid #d9383a;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .source-box {
+            background-color: #f0f4f9;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+            word-break: break-all;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            border: 2px solid var(--c-accent);
+            background-color: #ffffff;
+            color: var(--c-accent);
+        }
+
+        .button-area {
+            margin-top: 32px;
+            text-align: center;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #555555;
+            width: 100%;
+            max-width: 840px;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>エマミル - 避難地図作成アプリ</h1>
+</header>
+
+<nav aria-label="パンくずリスト" class="breadcrumb-nav">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">初期設定</a></li>
+        <li class="breadcrumb-item"><a href="app.html">避難地図作成</a></li>
+        <li class="breadcrumb-item"><span aria-current="page">達成目標・免責事項・API情報</span></li>
+    </ol>
+</nav>
+
+<div class="main-container">
+    
+    <!-- アプリの達成目標セクション -->
+    <div class="card">
+        <h2>エマミルについて（開発目標と目的）</h2>
+        <div class="notice-box">
+            「エマミル」は、「エマージェンシー」と「見る」を合わせた造語であり、「緊急時に見る」という意図を持たせています。
+        </div>
+        
+        <h3>開発の背景と目標</h3>
+        <ul>
+            <li>自然災害が多く、将来的に大きい災害が来ると予想されるため、プログラミング等を使って支援することを目的としています。</li>
+            <li>ターゲット：旅行や出張で土地勘のわからない人が、災害時に混み合うネットを介さずに避難場所・避難経路をスマホ等で簡単に確認できるようにすることを目指しています。</li>
+        </ul>
+
+        <h3>アプリの役割と他アプリとの差別化</h3>
+        <p>現在地(GPS)、または入力した住所から最も近い指定避難所を探索し、避難経路を画像として保存します。</p>
+        <ul>
+            <li><strong>写真として端末に保存できる：</strong>ネットにつながらなくても簡単に見直せるため、災害時や通信環境の悪い場所で便利です。</li>
+            <li><strong>印刷・共有が容易：</strong>A4サイズとして出力されるため、紙に印刷して共有することも可能です。</li>
+        </ul>
+
+        <h3>アクセシビリティ（誰でも簡単に活用できるように）</h3>
+        <ul>
+            <li>デザインはシンプルに設計しています。</li>
+            <li>Webアプリ（safariやgoogleなどのブラウザを通して使えるアプリ）として提供し、利用者の環境に依存させません。</li>
+            <li>PWA（ブラウザ画面でなく普通のアプリのように全画面で表示できるようにする仕組み）を使用して、ネイティブアプリのように振る舞う設計です。</li>
+        </ul>
+    </div>
+
+    <!-- 免責事項セクション -->
+    <div class="card">
+        <h2>免責事項・注意事項</h2>
+        <div class="alert-box">
+            本アプリをご利用の際は、以下のシステム上の制約および注意事項を必ずご確認ください。
+        </div>
+
+        <h3>1. 住所検索機能に関する注意事項</h3>
+        <p>
+            入力した住所からの探索に使用している「国土地理院 住所検索API」は、名称に国土地理院とありますが、実態は東京大学空間情報科学研究センター(CSIS)が提供するものです。<strong>これは実験のための提供であり、予告なしで中止される可能性があります</strong>
+        </p>
+
+        <h3>2. 経路探索とAPI依存について</h3>
+        <p>
+            本アプリはREST API（データや機能をやり取りする窓口）を使用して様々な情報を外部から取得しています。出発地・到着地の緯度・経度から避難場所までの「経路・移動距離・所要時間」を取得する「OpenRouteService Directions API」は、本アプリ使用API群において唯一、利用者にAPIキーの取得・設定が求められます。
+        </p>
+        
+        <h3>3. 情報の確実性について</h3>
+        <p>
+            保存する画像には避難経路が記された地図、移動距離、避難先の名称、出発地、予想所要時間などの情報が表記されますが、これらは平時のデータに基づき自動計算された目安です。実際の災害発生時は、最新の自治体の情報や現地の状況を最優先に行動してください。
+        </p>
+
+        <h3>4. ブラウザに保存されたAPIキーの取り扱い方について</h3>
+        <p>
+            「OpenRouteService Directions API」のAPIキーは平文でブラウザ上に保存しており、特にフリーデスクなどでは悪用される危険性がありますためアプリを閉じる前に必ず削除してください。
+        </p>
+        <p>
+            また、本アプリは無料でインターネット上にサイトを公開できる「Github Pages」を使用して運用されています。通信環境やAPIの状況によりサービスが利用できない場合の損害について、開発者は責任を負いかねます。
+        </p>
+    </div>
+
+    <!-- API提供元・1次情報セクション -->
+    <div class="card">
+        <h2>使用API一覧および提供元情報</h2>
+        <p>エマミルは以下のデータおよびライブラリを使用し、各提供元の規約を遵守して構築されています。</p>
+
+        <h3>OpenStreetMap Tile API</h3>
+        <p>地理空間情報の巨大なデータベースであり、LeafletなどのJavaScriptライブラリを使用してWebサイトに地図を埋め込むために使用しています。</p>
+        <div class="source-box">引用: OSM利用入門 <a href="https://openstreetmap.jp/node/762/" target="_blank">https://openstreetmap.jp/node/762/</a></div>
+
+        <h3>Geolocation API</h3>
+        <p>携帯電話の基地局などの地理空間データを使用して、位置情報を取得できるWeb標準APIです[cite: 9]。現在地からの探索時の緯度・経度を取得します。</p>
+        <div class="source-box">引用: Google Maps platform <a href="https://developers.google.com/maps/documentation/geolocation/overview?hl=ja" target="_blank">https://developers.google.com/maps/documentation/geolocation/overview?hl=ja</a></div>
+
+        <h3>国土地理院 住所検索API (CSIS)</h3>
+        <p>日本語で記述された住所・地名・駅名・公共施設名を経度・緯度に変換します。</p>
+        <div class="source-box">
+            引用: 「CSISシンプルジオコーディング実験」 <a href="https://geocode.csis.u-tokyo.ac.jp/home/simple-geocoding/" target="_blank">https://geocode.csis.u-tokyo.ac.jp/home/simple-geocoding/</a><br>
+            zenn記事: <a href="https://zenn.dev/ohsun/articles/313bfe4b976274" target="_blank">https://zenn.dev/ohsun/articles/313bfe4b976274</a>
+        </div>
+
+        <h3>指定緊急避難場所・指定避難所がすぐわかるAPI</h3>
+        <p>緯度・経度・探索半径・災害の種類を指定するだけで、周囲の避難場所・避難所を取得できます。</p>
+        <div class="source-box">
+            API提供: 東海大学宇津研究室「指定緊急避難場所・指定避難所がすぐわかる API」 <a href="https://note.com/utuken_tokai/n/n00d035c90ecl" target="_blank">https://note.com/utuken_tokai/n/n00d035c90ecl</a><br>
+            データ提供: 国土地理院「指定緊急避難場所・緊急避難所データ」 <a href="https://www.gsi.go.jp/bousaichiri/hinanbasho.html" target="_blank">https://www.gsi.go.jp/bousaichiri/hinanbasho.html</a>
+        </div>
+
+        <h3>OpenRouteService Directions API</h3>
+        <p>経路・移動距離・所要時間を取得するAPIです[cite: 9]。経路は等時線で取得できます。</p>
+        <div class="source-box">引用: Open RouteSerice <a href="https://openrouteservice.org/" target="_blank">https://openrouteservice.org/</a></div>
+
+        <h3>Leaflet (Leaflet.js) / html2canvas</h3>
+        <p>Leafletは動的な地図をウェブサイト上に埋め込めるオープンソースライブラリです。html2canvasはDOM要素をブラウザ上で解析し、canvas要素に再構築（画像化）するために使用しています。</p>
+        <div class="source-box">
+            引用: Leafletjs <a href="https://ja.wikipedia.org/wiki/Leaflet" target="_blank">https://ja.wikipedia.org/wiki/Leaflet</a><br>
+            引用: html2canvas <a href="https://easegis.jp/blog/html2canvas/" target="_blank">https://easegis.jp/blog/html2canvas/</a>
+        </div>
+        
+        <div class="button-area">
+            <a href="app.html" class="btn">アプリ画面に戻る</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p><strong>組織名:</strong> 2026 電子機械科</p>
+    <p><strong>Email:</strong> info@gmail.com</p>
+    <p>&copy; 2026 エマミル開発チーム</p>
+</footer>
+
+</body>
+</html>
