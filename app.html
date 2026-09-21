@@ -18,7 +18,7 @@
         form-action 'self';
     ">
 
-    <title>避難地図作成アプリ</title>
+    <title>エマミル</title>
 
     <!-- Leaflet CSS (SRI付き) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -68,6 +68,54 @@
             padding: 16px 20px;
             text-align: center;
             margin-bottom: 20px;
+        }
+
+        /* デジタル庁 DADS風 パンくずリスト */
+        .breadcrumb-nav {
+            width: 100%;
+            max-width: 960px;
+            padding: 0 16px;
+            margin-bottom: 16px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .breadcrumb-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "/";
+            margin: 0 8px;
+            color: #767676;
+        }
+
+        .breadcrumb-item a {
+            color: var(--c-accent);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .breadcrumb-item a:hover {
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:focus-visible {
+            outline: 3px solid var(--c-focus);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
+
+        .breadcrumb-item [aria-current="page"] {
+            color: var(--c-text);
+            font-weight: bold;
         }
 
         header h1 {
@@ -376,6 +424,11 @@
     <h1>避難地図作成アプリ</h1>
 </header>
 
+<!-- パンくずリスト表示エリア -->
+<nav aria-label="パンくずリスト" class="breadcrumb-nav">
+    <ol id="breadcrumbList" class="breadcrumb"></ol>
+</nav>
+
 <div class="main-container">
     <!-- 起動画面 -->
     <div id="appAuthLoading" class="loader">
@@ -525,10 +578,11 @@
     </div>
 </div>
 
-<footer id="appFooter">
+<footer>
+    <a href="notice.html">エマミル  注意事項</a>
     <p><strong>組織名:</strong> 2026 電子機械科</p>
     <p><strong>Email:</strong> info@gmail.com</p>
-    <p>&copy; 2026 防災マップ著作権者</p>
+    <p>&copy; 2026 エマミル開発チーム</p>
 </footer>
 
 <!-- External Libraries with SRI -->
@@ -569,6 +623,9 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("appAuthLoading").classList.add("hidden");
         document.getElementById("searchMenu").classList.remove("hidden");
 
+        // 初期パンくずを設定
+        setBreadcrumbStep("search");
+
         if (!ORS_API_KEY) {
             showError("OpenRouteServiceのAPIキーが設定されていません。\n初期設定画面(index.html)でAPIキーを登録してください。");
         }
@@ -577,6 +634,130 @@ window.addEventListener("DOMContentLoaded", () => {
         showError("アプリの起動に失敗しました。\n" + error.message);
     }
 });
+
+// 現在地から検索 ボタン押下時
+document.getElementById("btnChooseCurrent").addEventListener("click", () => {
+    searchMode = "current";
+    document.getElementById("searchMenu").classList.add("hidden");
+    document.getElementById("addressInputGroup").classList.remove("hidden");
+    document.getElementById("addressLabel").textContent = "現在地名";
+    document.getElementById("inputAddress").placeholder = "例：自宅、〇〇公園付近";
+    document.getElementById("inputAddress").value = ""; 
+    document.getElementById("formTitle").textContent = "現在地からの避難設定";
+    document.getElementById("formCard").classList.remove("hidden");
+    hideError();
+
+    // パンくずを条件指定へ更新
+    setBreadcrumbStep("form");
+});
+
+
+// 特定地域から検索 ボタン押下時
+document.getElementById("btnChooseArea").addEventListener("click", () => {
+    searchMode = "area";
+    document.getElementById("searchMenu").classList.add("hidden");
+    document.getElementById("addressInputGroup").classList.remove("hidden");
+    document.getElementById("addressLabel").textContent = "地域住所";
+    document.getElementById("inputAddress").placeholder = "例：群馬県藤岡市下戸塚４７−２";
+    document.getElementById("formTitle").textContent = "指定地域からの避難設定";
+    document.getElementById("formCard").classList.remove("hidden");
+    hideError();
+
+    // パンくずを条件指定へ更新
+    setBreadcrumbStep("form");
+});
+
+// 条件を変更する ボタン押下時
+document.getElementById("btnBackToForm").addEventListener("click", () => {
+    showFormStep();
+});
+
+
+/**
+ * パンくずリストを動的に更新する関数
+ * @param {Array<{label: string, url?: string, action?: Function}>} items 
+ */
+function updateBreadcrumbs(items) {
+    const container = document.getElementById("breadcrumbList");
+    if (!container) return;
+    
+    container.innerHTML = "";
+
+    items.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.className = "breadcrumb-item";
+
+        const isLast = (index === items.length - 1);
+
+        if (isLast) {
+            // 現在地（末尾）
+            const span = document.createElement("span");
+            span.setAttribute("aria-current", "page");
+            span.textContent = item.label;
+            li.appendChild(span);
+        } else {
+            // リンク・戻り遷移用
+            const a = document.createElement("a");
+            a.textContent = item.label;
+
+            if (item.url) {
+                a.href = item.url;
+            } else if (item.action) {
+                a.href = "#";
+                a.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    item.action();
+                });
+            }
+            li.appendChild(a);
+        }
+
+        container.appendChild(li);
+    });
+}
+
+// 各画面に戻るための関数定義
+function showSearchMenuStep() {
+    document.getElementById("formCard").classList.add("hidden");
+    document.getElementById("previewCard").classList.add("hidden");
+    document.getElementById("searchMenu").classList.remove("hidden");
+    hideError();
+    setBreadcrumbStep("search");
+}
+
+function showFormStep() {
+    document.getElementById("previewCard").classList.add("hidden");
+    document.getElementById("searchMenu").classList.add("hidden");
+    document.getElementById("formCard").classList.remove("hidden");
+    hideError();
+    setBreadcrumbStep("form");
+    setTimeout(() => { if (map) map.invalidateSize(); }, 300);
+}
+
+// 画面状態に応じたパンくずの切り替え
+function setBreadcrumbStep(step) {
+    const baseNav = { label: "初期設定", url: "index.html" };
+
+    if (step === "search") {
+        updateBreadcrumbs([
+            baseNav,
+            { label: "検索方法選択" }
+        ]);
+    } else if (step === "form") {
+        updateBreadcrumbs([
+            baseNav,
+            { label: "検索方法選択", action: showSearchMenuStep },
+            { label: "条件指定" }
+        ]);
+    } else if (step === "preview") {
+        updateBreadcrumbs([
+            baseNav,
+            { label: "検索方法選択", action: showSearchMenuStep },
+            { label: "条件指定", action: showFormStep },
+            { label: "マッププレビュー" }
+        ]);
+    }
+}
 
 function resizeA4Preview() {
     const wrapper = document.getElementById("a4-preview-wrapper");
