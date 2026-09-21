@@ -4,181 +4,329 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- PWA用マニフェストとテーマカラー -->
+    <!-- セキュリティ: Content Security Policy (CSP) -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline';
+        style-src 'self' 'unsafe-inline';
+        connect-src 'self' https://api.openrouteservice.org;
+        img-src 'self' data:;
+        font-src 'self';
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
+
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4a90e2">
+    <meta name="theme-color" content="#001144">
     <link rel="apple-touch-icon" href="icon-192.png">
 
-    <title>避難地図作成API登録</title>
+    <title>エマミル APIキー登録</title>
+    
     <style>
         :root {
-            --bg-color: #f0f3f6;
-            --text-color: #333;
-            --shadow-light: #ffffff;
-            --shadow-dark: #b8bfc6;
-            --accent-color: #4a90e2;
+            --c-primary: #001144;
+            --c-accent: #0055d4;
+            --c-accent-hover: #0040a8;
+            --c-text: #222222;
+            --c-bg: #f8f9fa;
+            --c-card-bg: #ffffff;
+            --c-border: #767676;
+            --c-error: #d9383a;
+            --c-focus: #0055d4;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--c-bg);
+            color: var(--c-text);
+            font-family: var(--font-family);
+            line-height: 1.6;
             display: flex;
             flex-direction: column;
-            align-items: center;    /* 完全に左右中央に固定 */
-            justify-content: center; /* 縦方向も中央に寄せる */
+            align-items: center;
             min-height: 100vh;
-            margin: 0;
-            padding: 15px;
-            box-sizing: border-box;
+            padding: 20px 16px;
         }
-        .container {
-            background: var(--bg-color);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
-            width: 100%;
-            max-width: 350px;
-            text-align: center;
-            margin-bottom: 20px; /* フッターとの間隔を確保 */
-        }
-        h2 { margin-bottom: 24px; font-size: 1.5rem; }
-        .hidden { display: none !important; }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 10px;
-            background: var(--bg-color);
-            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-            box-sizing: border-box;
-        }
-        button, .btn-link {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin: 15px 0;
-            border: none;
-            border-radius: 10px;
-            background: var(--bg-color);
-            box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
-            cursor: pointer;
-            font-weight: bold;
-            color: var(--accent-color);
-            text-decoration: none;
-            box-sizing: border-box;
-        }
-        button:active, .btn-link:active {
-            box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-        }
-        .loading { font-size: 0.9rem; color: #666; }
 
-        /* =====================================================
-           フッターのスタイル
-        ====================================================== */
-        footer {
-            padding: 15px;
-            text-align: center;
-            font-size: 13px;
-            color: #555;
+        header {
             width: 100%;
-            max-width: 350px; /* .container と全く同じ幅に固定 */
-            background: var(--bg-color);
-            border-radius: 10px;
-            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
-            box-sizing: border-box;
+            max-width: 480px;
+            background: var(--c-primary);
+            color: #ffffff;
+            padding: 16px 20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
         }
-        footer p {
-            margin: 5px 0;
-        }
-        footer a {
-            color: var(--accent-color);
-            text-decoration: none;
+
+        header h1 {
+            font-size: 1.25rem;
             font-weight: bold;
         }
-        footer a:hover {
-            text-decoration: underline;
+
+        .container {
+            background: var(--c-card-bg);
+            padding: 24px;
+            border: 1px solid #dcdcdc;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 2px solid var(--c-border);
+            border-radius: 4px;
+            background-color: #ffffff;
+            color: var(--c-text);
+            margin-bottom: 16px;
+        }
+
+        input[type="text"]:focus {
+            outline: 3px solid var(--c-focus);
+            outline-offset: 1px;
+            border-color: var(--c-focus);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+            box-sizing: border-box;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--c-accent);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--c-accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--c-accent);
+            border: 2px solid var(--c-accent);
+            margin-bottom: 12px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f4f9;
+        }
+
+        .btn-danger {
+            background-color: #ffffff;
+            color: var(--c-error);
+            border: 2px solid var(--c-error);
+            margin-top: 8px;
+        }
+
+        .btn-danger:hover {
+            background-color: #fdf2f2;
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid #000000;
+            outline-offset: 2px;
+        }
+
+        .status-box {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+
+        .status-info {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--c-accent);
+        }
+
+        .error-alert {
+            background-color: #fde8e8;
+            border-left: 4px solid var(--c-error);
+            color: #900;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+        }
+
+        footer {
+            margin-top: auto;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #555555;
+            padding: 16px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        footer p {
+            margin: 4px 0;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="loadingView" class="loading">APIキーを確認中...</div>
+<header>
+    <h1>避難地図作成アプリ</h1>
+</header>
 
-    <!-- キーが存在する場合 -->
-    <div id="existView" class="hidden">
-        <h2>設定完了済み</h2>
-        <p>APIキーが保存されています。</p>
-        <a href="app.html" class="btn-link">アプリを起動する</a>
-        <button id="deleteKeyBtn" style="color: #e24a4a;">APIキーを削除</button>
+<div class="container">
+    <div id="loadingView" class="status-box status-info">
+        APIキーの状態を確認しています...
     </div>
 
-    <!-- キーが存在しない場合 -->
+    <div id="alertArea" class="error-alert hidden" role="alert" aria-live="assertive"></div>
+
+    <!-- キー保存済み表示 -->
+    <div id="existView" class="hidden">
+        <div class="status-box status-info">
+            <strong>設定完了済み</strong><br>
+            OpenRouteService APIキーがブラウザに保存されています。
+            <strong>アプリケーションを閉じるときは必ず初期設定からAPIキーを削除してください。</strong>
+        </div>
+        <a href="app.html" class="btn btn-primary btn-secondary">アプリを起動する</a>
+        <button id="deleteKeyBtn" class="btn btn-danger" type="button">APIキーを削除</button>
+    </div>
+
+    <!-- キー未設定表示 -->
     <div id="inputView" class="hidden">
-        <h2>APIキー設定</h2>
-        <p style="font-size:0.8rem; color:#666;">OpenRouteServiceのAPIキーを入力してください</p>
-        <input type="text" id="orsKeyInput" placeholder="OpenRouteService API Key">
-        <button id="saveKeyBtn">キーを検証して保存</button>
+        <h2 style="font-size: 1.1rem; margin-bottom: 12px;">APIキーの設定</h2>
+        <p style="font-size:0.9rem; color:#444; margin-bottom: 16px;">
+            本アプリのルート検索機能を利用するには、OpenRouteService の APIキーが必要です。
+            <strong>アプリケーションを閉じるときは必ず初期設定からAPIキーを削除してください。</strong>
+        </p>
+        <form id="keyForm" onsubmit="return false;">
+            <label for="orsKeyInput">OpenRouteService API Key</label>
+            <input type="text" id="orsKeyInput" placeholder="5b3ce35c01ac680001cf2b68..." autocomplete="off">
+            <button id="saveKeyBtn" class="btn btn-primary" type="button">キーを検証して保存</button>
+        </form>
     </div>
 </div>
 
-<!-- =========================================================
-     フッター
-========================================================== -->
-<footer id="appFooter">
-    <p><strong>組織名 : </strong>2026 電子機械科</p>
-    <p><strong>Email : </strong>info@gmail.com</p>
-    <p>&copy; 2026 防災マップ著作権者</p>
+<footer>
+    <a href="notice.html">エマミル  注意事項</a>
+    <p><strong>組織名:</strong> 2026 電子機械科</p>
+    <p><strong>Email:</strong> info@gmail.com</p>
+    <p>&copy; 2026 エマミル開発チーム</p>
 </footer>
 
 <script>
-    // ユニークなキー名（LocalStorageの競合回避）
-    const STORAGE_KEY = 'my_disaster_app_ors_key';
 
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedKey = localStorage.getItem(STORAGE_KEY);
-        document.getElementById('loadingView').classList.add('hidden');
+alert("アプリ終了時は必ず初期設定からAPIキーを削除してください。");
 
-        if (savedKey) {
-            document.getElementById('existView').classList.remove('hidden');
-        } else {
-            document.getElementById('inputView').classList.remove('hidden');
-        }
-    });
+"use strict";
 
-    // キーの保存と簡易検証
-    document.getElementById('saveKeyBtn').addEventListener('click', async () => {
-        const key = document.getElementById('orsKeyInput').value.trim();
-        if (!key) {
-            alert('キーを入力してください。');
+const STORAGE_KEY = 'my_disaster_app_ors_key';
+
+window.addEventListener('DOMContentLoaded', () => {
+    const savedKey = localStorage.getItem(STORAGE_KEY);
+    document.getElementById('loadingView').classList.add('hidden');
+
+    if (savedKey) {
+        document.getElementById('existView').classList.remove('hidden');
+    } else {
+        document.getElementById('inputView').classList.remove('hidden');
+    }
+});
+
+function showAlert(msg) {
+    const alertEl = document.getElementById('alertArea');
+    alertEl.textContent = msg;
+    alertEl.classList.remove('hidden');
+}
+
+function hideAlert() {
+    const alertEl = document.getElementById('alertArea');
+    alertEl.classList.add('hidden');
+    alertEl.textContent = '';
+}
+
+// APIキーの簡易検証と保存
+document.getElementById('saveKeyBtn').addEventListener('click', async () => {
+    hideAlert();
+    const key = document.getElementById('orsKeyInput').value.trim();
+    if (!key) {
+        showAlert('APIキーを入力してください。');
+        return;
+    }
+
+    const saveBtn = document.getElementById('saveKeyBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = '検証中...';
+
+    try {
+        // OpenRouteService エンドポイントでの認証テスト
+        const testUrl = "https://api.openrouteservice.org/v2/directions/foot-walking?api_key=" + encodeURIComponent(key) + "&start=139.6917,35.6895&end=139.6920,35.6898";
+        const res = await fetch(testUrl, { method: 'GET' });
+
+        if (res.status === 401 || res.status === 403) {
+            showAlert('無効なAPIキーです。正しいキーを入力してください。');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'キーを検証して保存';
             return;
         }
 
-        // OpenRouteServiceのキー有効性チェック（ダミーリクエストによる検証）
-        try {
-            const res = await fetch(`https://openrouteservice.org{key}&start=139.0,35.0&end=139.1,35.1`);
-            if (res.status === 403) {
-                alert('無効なAPIキーです。');
-                return;
-            }
-            // 400等のエラーは疎通はできている（キーは通っている）と判断
-            localStorage.setItem(STORAGE_KEY, key);
-            window.location.reload();
-        } catch (error) {
-            alert('通信エラーが発生しました。キーの検証がスキップされましたが、保存します。');
-            localStorage.setItem(STORAGE_KEY, key);
-            window.location.reload();
-        }
-    });
+        localStorage.setItem(STORAGE_KEY, key);
+        window.location.reload();
+    } catch (error) {
+        // ネットワークエラー等でも保存を試行可能にする
+        localStorage.setItem(STORAGE_KEY, key);
+        window.location.reload();
+    }
+});
 
-    // キーの削除
-    document.getElementById('deleteKeyBtn').addEventListener('click', () => {
-        if (confirm('APIキーを削除しますか？')) {
-            localStorage.removeItem(STORAGE_KEY);
-            window.location.reload();
-        }
-    });
+// キーの削除
+document.getElementById('deleteKeyBtn').addEventListener('click', () => {
+    if (confirm('保存されているAPIキーを削除しますか？')) {
+        localStorage.removeItem(STORAGE_KEY);
+        window.location.reload();
+    }
+});
 </script>
 </body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./pw.js')
+      .then((reg) => console.log('Service Worker 登録成功:', reg.scope))
+      .catch((err) => console.error('Service Worker 登録失敗:', err));
+  });
+}
+</script>
 </html>
