@@ -4,47 +4,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- セキュリティ: Content Security Policy (CSP) -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://unpkg.com;
+        img-src 'self' data: https://*.tile.openstreetmap.org https://cyberjapandata.gsi.go.jp https://unpkg.com;
+        connect-src 'self' https://hinan.utsuken.net https://api.heigit.org https://api.openrouteservice.org https://msearch.gsi.go.jp https://*.tile.openstreetmap.org https://cyberjapandata.gsi.go.jp;
+        font-src 'self';
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+    ">
+
     <title>避難地図作成アプリ</title>
 
-    <!-- =====================================================
-         Leaflet CSS
-    ====================================================== -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Leaflet CSS (SRI付き) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="anonymous">
 
-    <!-- =====================================================
-         CSS
-    ====================================================== -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#001144">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <style>
         :root {
-            --bg-color: #f0f3f6;
-            --text-color: #333;
-            --shadow-light: #ffffff;
-            --shadow-dark: #b8bfc6;
-            --accent-color: #4a90e2;
-            --danger-color: #e74c3c;
-            --success-color: #4af2a2;
+            --c-primary: #001144;
+            --c-accent: #0055d4;
+            --c-accent-hover: #0040a8;
+            --c-text: #222222;
+            --c-bg: #f8f9fa;
+            --c-card-bg: #ffffff;
+            --c-border: #767676;
+            --c-error: #d9383a;
+            --c-focus: #0055d4;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 15px;
+            background-color: var(--c-bg);
+            color: var(--c-text);
+            font-family: var(--font-family);
+            line-height: 1.6;
             display: flex;
             flex-direction: column;
             align-items: center;
-            -webkit-tap-highlight-color: transparent;
             min-height: 100vh;
-            justify-content: space-between;
+            padding: 0 0 20px 0;
+        }
+
+        header {
+            width: 100%;
+            background-color: var(--c-primary);
+            color: #ffffff;
+            padding: 16px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: bold;
         }
 
         .main-container {
             width: 100%;
+            max-width: 960px;
+            padding: 0 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -52,16 +86,16 @@
         }
 
         .card {
-            background: var(--bg-color);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+            background: var(--c-card-bg);
+            padding: 24px;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
             margin-bottom: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 520px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        /* プレビューカードは広く使う */
         #previewCard {
             max-width: 900px;
         }
@@ -72,180 +106,199 @@
 
         .loader {
             font-weight: bold;
-            color: #666;
+            color: #444;
             text-align: center;
-            padding: 20px;
+            padding: 24px;
+            background: var(--c-card-bg);
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 520px;
         }
 
         h2, h3 {
-            margin-top: 0;
+            margin-bottom: 16px;
+            color: var(--c-primary);
         }
 
-        input, select, button, textarea {
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], select, textarea {
             width: 100%;
             padding: 12px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px;
+            font-size: 1rem;
+            border: 2px solid var(--c-border);
+            border-radius: 4px;
+            background: #ffffff;
+            color: var(--c-text);
             appearance: none;
             -webkit-appearance: none;
         }
 
-        input, select, textarea {
-            background: var(--bg-color);
-            box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-            color: var(--text-color);
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: 3px solid var(--c-focus);
+            outline-offset: 1px;
+            border-color: var(--c-focus);
         }
 
         textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 90px;
         }
 
-        button {
-            background: var(--bg-color);
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 20px;
+            margin-top: 8px;
+            font-size: 1rem;
             font-weight: bold;
-            color: var(--accent-color);
-            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+            border-radius: 4px;
             cursor: pointer;
-            transition: 0.15s;
+            border: none;
+            transition: background-color 0.2s ease;
         }
 
-        button:active {
-            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+        .btn-primary {
+            background-color: var(--c-accent);
+            color: #ffffff;
         }
 
-        button:disabled {
-            opacity: 0.5;
+        .btn-primary:hover {
+            background-color: var(--c-accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: var(--c-accent);
+            border: 2px solid var(--c-accent);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f4f9;
+        }
+
+        .btn-success {
+            background-color: #008055;
+            color: #ffffff;
+        }
+
+        .btn-success:hover {
+            background-color: #006644;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
         }
 
-        .primary-button {
-            background: var(--accent-color);
-            color: white;
-        }
-
-        .success-button {
-            background: var(--success-color);
-            color: #1f6343;
+        .btn:focus-visible {
+            outline: 3px solid #000000;
+            outline-offset: 2px;
         }
 
         .checkbox-container {
             display: flex;
             align-items: center;
-            margin: 10px 0;
+            margin: 12px 0;
             cursor: pointer;
         }
 
-        .neu-checkbox {
+        .checkbox-container input[type="checkbox"] {
             width: 22px;
             height: 22px;
-            min-width: 22px;
-            border-radius: 6px;
-            margin-right: 12px;
-            box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
-            background: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .neu-checkbox::after {
-            content: "✓";
-            color: var(--accent-color);
-            font-weight: bold;
-            font-size: 16px;
-            display: none;
-        }
-
-        input[type="checkbox"] {
-            display: none;
-        }
-
-        input[type="checkbox"]:checked + .neu-checkbox::after {
-            display: block;
+            margin-right: 10px;
+            accent-color: var(--c-accent);
+            cursor: pointer;
         }
 
         .error-box {
-            background: #ffe8e8;
-            color: #9b0000;
-            border-radius: 10px;
-            padding: 15px;
+            background: #fde8e8;
+            color: #900000;
+            border: 2px solid var(--c-error);
+            border-radius: 4px;
+            padding: 16px;
             white-space: pre-wrap;
             line-height: 1.5;
+            margin-bottom: 20px;
         }
 
         .notice {
-            font-size: 13px;
-            color: #666;
+            font-size: 0.85rem;
+            color: #555555;
             line-height: 1.5;
-            margin-top: 10px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
         }
 
-        /* 避難施設の赤文字用 */
         .red-text {
-            color: var(--danger-color) !important;
+            color: var(--c-error) !important;
             font-weight: bold;
         }
 
-        /* =====================================================
-           フッターのスタイル
-        ====================================================== */
         footer {
             margin-top: auto;
-            padding: 15px;
+            padding: 16px;
             text-align: center;
-            font-size: 13px;
-            color: #555;
+            font-size: 0.85rem;
+            color: #555555;
             width: 100%;
-            max-width: 500px;
-            background: var(--bg-color);
-            border-radius: 10px;
-            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
-        }
-        footer p {
-            margin: 5px 0;
-        }
-        footer a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: bold;
-        }
-        footer a:hover {
-            text-decoration: underline;
+            max-width: 520px;
+            border-top: 1px solid #e0e0e0;
         }
 
-        /* =====================================================
-           A4出力・プレビューラッパー
-        ====================================================== */
+        footer p {
+            margin: 4px 0;
+        }
+
+        /* A4 プレビュー用レイアウト */
         #a4-preview-wrapper {
             width: 100%;
-            overflow: hidden; /* 縮小時に枠外に出る要素を隠す */
+            overflow: hidden;
             position: relative;
             margin: 20px 0;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background: #fff;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            background: #ffffff;
         }
 
         #a4-output-container {
             width: 842px;
             height: 595px;
-            background: white;
-            color: #000;
+            background: #ffffff;
+            color: #000000;
             display: flex;
             padding: 20px;
             box-sizing: border-box;
-            transform-origin: top left; /* 縮小の基点を左上に設定 */
+            transform-origin: top left;
         }
 
         #map-area {
             width: 52%;
             height: 100%;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
             overflow: hidden;
         }
 
@@ -260,32 +313,35 @@
         }
 
         .info-item {
-            margin: 12px 0;
-            font-size: 16px;
+            margin: 8px 0;
+            font-size: 15px;
             line-height: 1.4;
         }
 
-        #hinanSisetu{
-            background-color: #EEE;
+        #hinanSisetu {
+            background-color: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 4px solid var(--c-error);
         }
 
         .a4-checkbox-group {
-            margin-top: 15px;
+            margin-top: 12px;
             border-top: 1px dashed #ccc;
-            padding-top: 10px;
+            padding-top: 8px;
         }
 
         .a4-checkbox-item {
             display: flex;
             align-items: center;
-            font-size: 14px;
-            margin: 7px 0;
+            font-size: 13px;
+            margin: 6px 0;
         }
 
         .a4-box {
-            width: 15px;
-            height: 15px;
-            border: 2px solid #333;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #333333;
             margin-right: 8px;
             display: flex;
             align-items: center;
@@ -295,12 +351,12 @@
         }
 
         .a4-memo-box {
-            margin-top: 8px;
-            border: 1px solid #666;
+            margin-top: 6px;
+            border: 1px solid #888888;
             border-radius: 4px;
-            padding: 10px;
-            min-height: 100px;
-            font-size: 13px;
+            padding: 8px;
+            min-height: 90px;
+            font-size: 12px;
             white-space: pre-wrap;
             background: #fafafa;
             flex-grow: 1;
@@ -308,7 +364,7 @@
         }
 
         @media (max-width: 600px) {
-            body { padding: 10px; }
+            body { padding-bottom: 10px; }
             .card { padding: 16px; }
         }
     </style>
@@ -316,107 +372,100 @@
 
 <body>
 
+<header>
+    <h1>避難地図作成アプリ</h1>
+</header>
+
 <div class="main-container">
-    <!-- =========================================================
-         起動画面
-    ========================================================== -->
+    <!-- 起動画面 -->
     <div id="appAuthLoading" class="loader">
         アプリを起動しています...
     </div>
 
-    <!-- =========================================================
-         エラー
-    ========================================================== -->
-    <div id="errorMessage" class="card error-box hidden"></div>
+    <!-- エラー表示エリア -->
+    <div id="errorMessage" class="error-box hidden" role="alert" aria-live="assertive"></div>
 
-    <!-- =========================================================
-         検索メニュー
-    ========================================================== -->
+    <!-- 検索メニュー -->
     <div id="searchMenu" class="card hidden">
         <h2>避難場所検索</h2>
-        <p>避難場所を検索する方法を選択してください。</p>
-        <button id="btnChooseCurrent" class="primary-button">現在地から検索</button>
-        <button id="btnChooseArea">特定地域から検索</button>
+        <p style="margin-bottom: 16px;">避難場所を検索する方法を選択してください。</p>
+        <button id="btnChooseCurrent" class="btn btn-primary" type="button">現在地から検索</button>
+        <button id="btnChooseArea" class="btn btn-secondary" type="button">特定地域から検索</button>
     </div>
 
-    <!-- =========================================================
-         条件フォーム
-    ========================================================== -->
+    <!-- 条件指定フォーム -->
     <div id="formCard" class="card hidden">
         <h3 id="formTitle">条件指定</h3>
 
-        <!-- 住所（現在地名・地域住所兼用） -->
-        <div id="addressInputGroup">
+        <div id="addressInputGroup" class="form-group">
             <label id="addressLabel" for="inputAddress">地域住所</label>
             <input type="text" id="inputAddress" placeholder="例：群馬県藤岡市下戸塚４７−２" autocomplete="street-address">
         </div>
 
-        <!-- 災害 -->
-        <label for="selectDisaster" style="display: block; margin-top: 10px;">想定災害</label>
-        <select id="selectDisaster">
-            <option value="flood">洪水</option>
-            <option value="gakekuzure_dosekiryu_jisuberi">崖崩れ・土石流・地滑り</option>
-            <option value="hightide">高潮</option>
-            <option value="earthquake">地震</option>
-            <option value="tsunami">津波</option>
-            <option value="daikibo_kaji">大規模な火事</option>
-        </select>
+        <div class="form-group">
+            <label for="selectDisaster">想定災害</label>
+            <select id="selectDisaster">
+                <option value="flood">洪水</option>
+                <option value="gakekuzure_dosekiryu_jisuberi">崖崩れ・土石流・地滑り</option>
+                <option value="hightide">高潮</option>
+                <option value="earthquake">地震</option>
+                <option value="tsunami">津波</option>
+                <option value="daikibo_kaji">大規模な火事</option>
+            </select>
+        </div>
 
-        <!-- 移動手段 -->
-        <label for="selectProfile" style="display: block; margin-top: 10px;">移動手段</label>
-        <select id="selectProfile">
-            <option value="foot-walking">徒歩</option>
-            <option value="driving-car">車</option>
-            <option value="cycling-regular">自転車</option>
-        </select>
+        <div class="form-group">
+            <label for="selectProfile">移動手段</label>
+            <select id="selectProfile">
+                <option value="foot-walking">徒歩</option>
+                <option value="driving-car">車</option>
+                <option value="cycling-regular">自転車</option>
+            </select>
+        </div>
 
-        <!-- 持ち出し品 -->
-        <label style="margin-top: 15px; font-weight: bold; display: block;">持ち出し品チェック</label>
-        <label class="checkbox-container">
-            <input type="checkbox" id="chkItem1" checked>
-            <div class="neu-checkbox"></div>
-            <span>非常用持出袋・リュックを背負ったか？</span>
-        </label>
-        <label class="checkbox-container">
-            <input type="checkbox" id="chkItem2" checked>
-            <div class="neu-checkbox"></div>
-            <span>ブレーカー・ガスの元栓は閉めたか？</span>
-        </label>
+        <div class="form-group">
+            <label>持ち出し品チェック</label>
+            <label class="checkbox-container">
+                <input type="checkbox" id="chkItem1" checked>
+                <span>非常用持出袋・リュックを背負ったか？</span>
+            </label>
+            <label class="checkbox-container">
+                <input type="checkbox" id="chkItem2" checked>
+                <span>ブレーカー・ガスの元栓は閉めたか？</span>
+            </label>
+        </div>
 
-        <!-- メモ -->
-        <label for="txtMemo" style="font-weight:bold; display: block; margin-top: 10px;">伝言・避難時のメモ</label>
-        <textarea id="txtMemo" placeholder="例：集合場所は正面玄関前。"></textarea>
+        <div class="form-group">
+            <label for="txtMemo">伝言・避難時のメモ</label>
+            <textarea id="txtMemo" placeholder="例：集合場所は正面玄関前。"></textarea>
+        </div>
 
-        <button id="btnExecuteSearch" class="primary-button" style="margin-top: 15px;">検索してルートを生成</button>
+        <button id="btnExecuteSearch" class="btn btn-primary" type="button">検索してルートを生成</button>
 
         <p class="notice">
-            ※避難場所情報は宇津研究室APIを利用しています。<br>
-            実際の避難時には自治体の最新情報も確認してください。
+            ※ 避難場所情報は宇津研究室APIを利用しています。<br>
+            実際の避難時には自治体の最新情報も併せて確認してください。
         </p>
     </div>
 
-    <!-- =========================================================
-         処理中
-    ========================================================== -->
+    <!-- 処理中表示 -->
     <div id="processLoading" class="loader hidden">
         避難場所とルートを検索しています...
     </div>
 
-    <!-- =========================================================
-         完了・プレビュー表示
-    ========================================================== -->
+    <!-- 完了・プレビュー表示 -->
     <div id="previewCard" class="card hidden">
         <h3>マップ生成完了</h3>
-        <p>避難場所とルートを取得しました。以下のプレビューを確認してください。</p>
+        <p style="margin-bottom: 12px;">避難場所とルートを取得しました。以下のプレビューを確認してください。</p>
 
-        <!-- A4出力・プレビューラッパー -->
-         <button id="btnDownloadImage" class="success-button">A4サイズの画像を保存</button>
+        <button id="btnDownloadImage" class="btn btn-success" type="button" style="margin-bottom: 16px;">A4サイズの画像を保存</button>
+
         <div id="a4-preview-wrapper">
             <div id="a4-output-container">
                 <!-- 地図 -->
                 <div id="map-area"></div>
 
-                <!-- 情報レイアウト変更 -->
+                <!-- 情報レイアウト -->
                 <div id="info-area">
                     <div>
                         <div class="info-item" id="hinanSisetu">
@@ -459,49 +508,44 @@
 
                     <!-- メモ -->
                     <div style="display:flex; flex-direction:column; flex-grow:1; margin-bottom:5px;">
-                        <strong style="font-size:13px;">■ 避難メモ・伝言</strong>
+                        <strong style="font-size:12px;">■ 避難メモ・伝言</strong>
                         <div id="a4-out-memo" class="a4-memo-box"></div>
                     </div>
 
                     <!-- クレジット -->
-                    <div style="font-size:10px; color:#666; text-align:left;">
-                        <p>宇津研究室 指定緊急避難場所・指定避難所API / OpenStreetMap / openrouteservice / 国土地理院 住所検索API</p>
-                           *注意*これらの情報はあくまで上記APIにより作成されたものであり確実性は保証できません
+                    <div style="font-size:9px; color:#666; text-align:left;">
+                        <p>宇津研究室 指定緊急避難場所API / 国土地理院 地図・住所検索API / openrouteservice</p>
+                        *注意* これらの情報はAPIを基に生成されたものであり、確実性を保証するものではありません。
                     </div>
                 </div>
             </div>
         </div>
 
-        <button id="btnBackToForm">条件を変更する</button>
+        <button id="btnBackToForm" class="btn btn-secondary" type="button">条件を変更する</button>
     </div>
 </div>
 
-<!-- =========================================================
-     フッター（避難場所検索時のみ表示・検索ボタン押下で非表示）
-========================================================== -->
 <footer id="appFooter">
-    <p><strong>組織名 : </strong>2026 電子機械科</p>
-    <p><strong>Email : </strong>info@gmail.com</p>
+    <p><strong>組織名:</strong> 2026 電子機械科</p>
+    <p><strong>Email:</strong> info@gmail.com</p>
     <p>&copy; 2026 防災マップ著作権者</p>
 </footer>
 
-<!-- =========================================================
-     Leaflet & html2canvas JS
-========================================================== -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- External Libraries with SRI -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+GQFX6430gsN18P83pbTNUL3k05QMypWCK/5fZAeN/+5X6ckv28Kh6D93GQ=="
+        crossorigin="anonymous"></script>
 
 <script>
 "use strict";
 
-/* =========================================================
-   設定
-========================================================= */
 const UTSU_API_BASE = "https://hinan.utsuken.net/api/v1";
 const STORAGE_KEY = "my_disaster_app_ors_key";
-const ORS_BASE_URL = "https://api.heigit.org/openrouteservice";
+const ORS_BASE_URL = "https://api.openrouteservice.org";
 
-/* グローバル変数 */
 let ORS_API_KEY = "";
 let searchMode = "";
 let map = null;
@@ -509,8 +553,7 @@ let startMarker = null;
 let shelterMarker = null;
 let routeLayer = null;
 
-/* 赤いピンのSVG定義 */
-const redIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#e74c3c" width="32px" height="32px"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+const redIconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#d9383a" width="32px" height="32px"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
 const redPinIcon = L.divIcon({
     className: 'custom-red-pin',
     html: redIconSvg,
@@ -519,20 +562,15 @@ const redPinIcon = L.divIcon({
     popupAnchor: [0, -32]
 });
 
-/* =========================================================
-   ページ起動
-========================================================= */
 window.addEventListener("DOMContentLoaded", () => {
     try {
         ORS_API_KEY = localStorage.getItem(STORAGE_KEY) || "";
         initializeMap();
         document.getElementById("appAuthLoading").classList.add("hidden");
         document.getElementById("searchMenu").classList.remove("hidden");
-        // フッターは検索メニュー表示時に表示状態にしておく
-        document.getElementById("appFooter").classList.remove("hidden");
 
         if (!ORS_API_KEY) {
-            showError("OpenRouteServiceのAPIキーが設定されていません。\nルート検索を行うにはAPIキーが必要です。");
+            showError("OpenRouteServiceのAPIキーが設定されていません。\n初期設定画面(index.html)でAPIキーを登録してください。");
         }
     } catch (error) {
         console.error(error);
@@ -540,20 +578,17 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-/* =========================================================
-   プレビューのリサイズ（画面比率対応）
-========================================================= */
 function resizeA4Preview() {
     const wrapper = document.getElementById("a4-preview-wrapper");
     const container = document.getElementById("a4-output-container");
     if (!wrapper || !container) return;
-   
+    
     const targetWidth = 842;
     const targetHeight = 595;
-   
+    
     const wrapperWidth = wrapper.clientWidth;
     const scale = Math.min(wrapperWidth / targetWidth, 1.0);
-   
+    
     container.style.transform = `scale(${scale})`;
     wrapper.style.height = `${targetHeight * scale}px`;
 
@@ -568,32 +603,25 @@ window.addEventListener("resize", () => {
     }
 });
 
-/* =========================================================
-   Leaflet初期化
-========================================================= */
 function initializeMap() {
     map = L.map("map-area", { preferCanvas: true }).setView([36.305721, 138.99585], 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap contributors"
+    
+    // 国土地理院タイル（標準地図）に変更
+    L.tileLayer("https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        crossOrigin: 'anonymous',
+        attribution: "<a href='https://maps.gsi.go.jp/development/ichiran.html' target='_blank'>国土地理院</a>"
     }).addTo(map);
 }
 
-/* =========================================================
-   現在地・地域ボタン（ここでフッターを非表示にする）
-========================================================= */
 document.getElementById("btnChooseCurrent").addEventListener("click", () => {
     searchMode = "current";
     document.getElementById("searchMenu").classList.add("hidden");
-   
-    // フッターを非表示にする
-    document.getElementById("appFooter").classList.add("hidden");
-
     document.getElementById("addressInputGroup").classList.remove("hidden");
-    document.getElementById("addressLabel").innerText = "現在地名";
-    document.getElementById("inputAddress").placeholder = "例：自宅リビング、XX小学校付近";
-    document.getElementById("inputAddress").value = "";
-    document.getElementById("formTitle").innerText = "現在地からの避難設定";
+    document.getElementById("addressLabel").textContent = "現在地名";
+    document.getElementById("inputAddress").placeholder = "例：自宅、〇〇公園付近";
+    document.getElementById("inputAddress").value = ""; 
+    document.getElementById("formTitle").textContent = "現在地からの避難設定";
     document.getElementById("formCard").classList.remove("hidden");
     hideError();
 });
@@ -601,25 +629,17 @@ document.getElementById("btnChooseCurrent").addEventListener("click", () => {
 document.getElementById("btnChooseArea").addEventListener("click", () => {
     searchMode = "area";
     document.getElementById("searchMenu").classList.add("hidden");
-   
-    // フッターを非表示にする
-    document.getElementById("appFooter").classList.add("hidden");
-
     document.getElementById("addressInputGroup").classList.remove("hidden");
-    document.getElementById("addressLabel").innerText = "地域住所(A県B市C町D番地)";
+    document.getElementById("addressLabel").textContent = "地域住所";
     document.getElementById("inputAddress").placeholder = "例：群馬県藤岡市下戸塚４７−２";
-    document.getElementById("formTitle").innerText = "指定地域からの避難設定";
+    document.getElementById("formTitle").textContent = "指定地域からの避難設定";
     document.getElementById("formCard").classList.remove("hidden");
     hideError();
 });
 
-
-/* =========================================================
-   メイン検索
-========================================================= */
 document.getElementById("btnExecuteSearch").addEventListener("click", async () => {
     hideError();
-   
+    
     const inputName = document.getElementById("inputAddress").value.trim();
     if (!inputName) {
         showError(searchMode === "current" ? "現在地名を入力してください。" : "住所を入力してください。");
@@ -631,7 +651,7 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
 
     try {
         let startLat, startLng;
-        let startName = inputName;
+        let startName = inputName; 
 
         if (searchMode === "current") {
             const position = await getCurrentLocation();
@@ -651,19 +671,19 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
         const disasterType = disasterSelect.value;
 
         const shelter = await fetchEmergencyShelter(startLat, startLng, disasterType);
-       
         const route = await getORSRoute(startLat, startLng, shelter.latitude, shelter.longitude, profileType);
 
-        document.getElementById("out-shelter-name").innerText = shelter.place_name;
-        document.getElementById("out-start-name").innerText = startName;
-        document.getElementById("out-address").innerText = shelter.address || "-";
-        document.getElementById("out-profile").innerText = profileText;
-        document.getElementById("out-distance").innerText = (route.distance / 1000).toFixed(2) + " km";
-        document.getElementById("out-time").innerText = Math.round(route.duration / 60) + " 分";
+        // 安全なテキスト設定 (XSS防止)
+        document.getElementById("out-shelter-name").textContent = shelter.place_name;
+        document.getElementById("out-start-name").textContent = startName;
+        document.getElementById("out-address").textContent = shelter.address || "-";
+        document.getElementById("out-profile").textContent = profileText;
+        document.getElementById("out-distance").textContent = (route.distance / 1000).toFixed(2) + " km";
+        document.getElementById("out-time").textContent = Math.round(route.duration / 60) + " 分";
 
-        document.getElementById("a4-box1").innerText = document.getElementById("chkItem1").checked ? "✓" : "";
-        document.getElementById("a4-box2").innerText = document.getElementById("chkItem2").checked ? "✓" : "";
-        document.getElementById("a4-out-memo").innerText = document.getElementById("txtMemo").value;
+        document.getElementById("a4-box1").textContent = document.getElementById("chkItem1").checked ? "✓" : "";
+        document.getElementById("a4-box2").textContent = document.getElementById("chkItem2").checked ? "✓" : "";
+        document.getElementById("a4-out-memo").textContent = document.getElementById("txtMemo").value;
 
         document.getElementById("processLoading").classList.add("hidden");
         document.getElementById("previewCard").classList.remove("hidden");
@@ -679,10 +699,6 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
     }
 });
 
-
-/* =========================================================
-   位置情報・API系関数
-========================================================= */
 function getCurrentLocation() {
     return new Promise((resolve, reject) => {
         if (!navigator.geolocation) return reject(new Error("この端末は位置情報取得に対応していません。"));
@@ -750,7 +766,7 @@ function normalizeShelter(data) {
 async function getORSRoute(startLat, startLng, endLat, endLng, profile) {
     if (!ORS_API_KEY) throw new Error("OpenRouteService APIキーがありません。");
 
-    const url = ORS_BASE_URL + "/v2/directions/" + profile + "/geojson";
+    const url = ORS_BASE_URL + "/v2/directions/" + encodeURIComponent(profile) + "/geojson";
     const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -778,10 +794,6 @@ async function getORSRoute(startLat, startLng, endLat, endLng, profile) {
     };
 }
 
-
-/* =========================================================
-   Leaflet描画
-========================================================= */
 function updateMap(startLat, startLng, shelter, coordinates) {
     if (!map) throw new Error("地図が初期化されていません。");
     if (startMarker) map.removeLayer(startMarker);
@@ -794,7 +806,7 @@ function updateMap(startLat, startLng, shelter, coordinates) {
         .bindPopup(shelter.place_name);
 
     const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
-    routeLayer = L.polyline(latLngs, { color: "#4a90e2", weight: 6, opacity: 0.85, renderer: L.canvas() }).addTo(map);
+    routeLayer = L.polyline(latLngs, { color: "#0055d4", weight: 6, opacity: 0.85, renderer: L.canvas() }).addTo(map);
 
     setTimeout(() => {
         map.invalidateSize();
@@ -802,13 +814,9 @@ function updateMap(startLat, startLng, shelter, coordinates) {
     }, 300);
 }
 
-
-/* =========================================================
-   エラー表示・非表示系、その他UI動作
-========================================================= */
 function showError(message) {
     const el = document.getElementById("errorMessage");
-    el.innerText = message;
+    el.textContent = message;
     el.classList.remove("hidden");
 }
 
@@ -823,20 +831,18 @@ document.getElementById("btnBackToForm").addEventListener("click", () => {
     setTimeout(() => { if (map) map.invalidateSize(); }, 300);
 });
 
-/* =========================================================
-   A4 PNG保存（html2canvas）
-========================================================= */
+// A4 PNG保存処理
 document.getElementById("btnDownloadImage").addEventListener("click", async () => {
     const target = document.getElementById("a4-output-container");
     const button = document.getElementById("btnDownloadImage");
 
     if (typeof html2canvas !== "function") {
-        showError("html2canvasが読み込まれていません。");
+        showError("html2canvasライブラリの読み込みに失敗しています。");
         return;
     }
 
     button.disabled = true;
-    button.innerText = "画像を生成中...";
+    button.textContent = "画像を生成中...";
 
     const oldPosition = target.style.position;
     const oldLeft = target.style.left;
@@ -864,16 +870,14 @@ document.getElementById("btnDownloadImage").addEventListener("click", async () =
             if (shelterMarker) shelterMarker.update();
         }
 
-        await new Response(resolve => {
-            requestAnimationFrame(() => { requestAnimationFrame(resolve); });
-        });
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         await sleep(500);
 
         if (map) {
             map.invalidateSize(true);
             if (routeLayer) routeLayer.redraw();
         }
-        await new Promise(resolve => { requestAnimationFrame(resolve); });
+        await new Promise(resolve => requestAnimationFrame(resolve));
 
         const canvas = await html2canvas(target, {
             width: 842,
@@ -916,7 +920,7 @@ document.getElementById("btnDownloadImage").addEventListener("click", async () =
         }
 
         button.disabled = false;
-        button.innerText = "A4サイズの画像を保存";
+        button.textContent = "A4サイズの画像を保存";
     }
 });
 
@@ -930,7 +934,7 @@ function canvasToBlob(canvas) {
 }
 
 function sleep(ms) {
-    return new Promise(resolve => { setTimeout(resolve, ms); });
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function getFileDate() {
@@ -943,7 +947,15 @@ function getFileDate() {
     const sec = String(date.getSeconds()).padStart(2, "0");
     return y + m + d + "_" + h + min + sec;
 }
-
 </script>
 </body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./pw.js')
+      .then((reg) => console.log('Service Worker 登録成功:', reg.scope))
+      .catch((err) => console.error('Service Worker 登録失敗:', err));
+  });
+}
+</script>
 </html>
