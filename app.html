@@ -8,9 +8,9 @@
     <!-- セキュリティ: Content Security Policy (CSP) -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com;
+        script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
         style-src 'self' 'unsafe-inline' https://unpkg.com;
-        img-src 'self' data: https://*.tile.openstreetmap.org https://cyberjapandata.gsi.go.jp https://unpkg.com;
+        img-src 'self' data: blob: https://*.tile.openstreetmap.org https://cyberjapandata.gsi.go.jp https://unpkg.com;
         connect-src 'self' https://hinan.utsuken.net https://api.heigit.org https://api.openrouteservice.org https://msearch.gsi.go.jp https://*.tile.openstreetmap.org https://cyberjapandata.gsi.go.jp;
         font-src 'self';
         frame-ancestors 'none';
@@ -18,7 +18,7 @@
         form-action 'self';
     ">
 
-    <title>エマミル アプリ</title>
+    <title>エマミル</title>
 
     <!-- Leaflet CSS (SRI付き) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -589,9 +589,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
-        integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+GQFX6430gsN18P83pbTNUL3k05QMypWCK/5fZAeN/+5X6ckv28Kh6D93GQ=="
-        crossorigin="anonymous"></script>
+
+<!-- html2canvas 安定版 CDN (jsDelivr) への変更 -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
 "use strict";
@@ -651,7 +651,6 @@ document.getElementById("btnChooseCurrent").addEventListener("click", () => {
     setBreadcrumbStep("form");
 });
 
-
 // 特定地域から検索 ボタン押下時
 document.getElementById("btnChooseArea").addEventListener("click", () => {
     searchMode = "area";
@@ -671,7 +670,6 @@ document.getElementById("btnChooseArea").addEventListener("click", () => {
 document.getElementById("btnBackToForm").addEventListener("click", () => {
     showFormStep();
 });
-
 
 /**
  * パンくずリストを動的に更新する関数
@@ -795,29 +793,6 @@ function initializeMap() {
     }).addTo(map);
 }
 
-document.getElementById("btnChooseCurrent").addEventListener("click", () => {
-    searchMode = "current";
-    document.getElementById("searchMenu").classList.add("hidden");
-    document.getElementById("addressInputGroup").classList.remove("hidden");
-    document.getElementById("addressLabel").textContent = "現在地名";
-    document.getElementById("inputAddress").placeholder = "例：自宅、〇〇公園付近";
-    document.getElementById("inputAddress").value = ""; 
-    document.getElementById("formTitle").textContent = "現在地からの避難設定";
-    document.getElementById("formCard").classList.remove("hidden");
-    hideError();
-});
-
-document.getElementById("btnChooseArea").addEventListener("click", () => {
-    searchMode = "area";
-    document.getElementById("searchMenu").classList.add("hidden");
-    document.getElementById("addressInputGroup").classList.remove("hidden");
-    document.getElementById("addressLabel").textContent = "地域住所";
-    document.getElementById("inputAddress").placeholder = "例：群馬県藤岡市下戸塚４７−２";
-    document.getElementById("formTitle").textContent = "指定地域からの避難設定";
-    document.getElementById("formCard").classList.remove("hidden");
-    hideError();
-});
-
 document.getElementById("btnExecuteSearch").addEventListener("click", async () => {
     hideError();
     
@@ -869,6 +844,7 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
         document.getElementById("processLoading").classList.add("hidden");
         document.getElementById("previewCard").classList.remove("hidden");
 
+        setBreadcrumbStep("preview");
         resizeA4Preview();
         updateMap(startLat, startLng, shelter, route.geometry);
 
@@ -1005,13 +981,6 @@ function hideError() {
     document.getElementById("errorMessage").classList.add("hidden");
 }
 
-document.getElementById("btnBackToForm").addEventListener("click", () => {
-    document.getElementById("previewCard").classList.add("hidden");
-    document.getElementById("formCard").classList.remove("hidden");
-    hideError();
-    setTimeout(() => { if (map) map.invalidateSize(); }, 300);
-});
-
 // A4 PNG保存処理
 document.getElementById("btnDownloadImage").addEventListener("click", async () => {
     const target = document.getElementById("a4-output-container");
@@ -1129,7 +1098,7 @@ function getFileDate() {
     return y + m + d + "_" + h + min + sec;
 }
 </script>
-</body>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1139,4 +1108,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+</body>
 </html>
