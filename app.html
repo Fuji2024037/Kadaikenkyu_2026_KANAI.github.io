@@ -5,15 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- セキュリティ: Content Security Policy (CSP) -->
+    <!-- セキュリティ: Content Security Policy (CSP) ※frame-ancestorsを削除し、unpkg.comを追加 -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
         style-src 'self' 'unsafe-inline' https://unpkg.com;
-        img-src 'self' data: blob: https://*.tile.openstreetmap.org https://cyberjapandata.gsi.go.jp https://unpkg.com;
-        connect-src 'self' https://hinan.utsuken.net https://api.heigit.org https://api.openrouteservice.org https://msearch.gsi.go.jp https://*.tile.openstreetmap.org https://cyberjapandata.gsi.go.jp;
-        font-src 'self';
-        frame-ancestors 'none';
+        img-src 'self' data: blob: https://*.tile.openstreetmap.org https://unpkg.com;
+        connect-src 'self' https://hinan.utsuken.net https://api.heigit.org https://api.openrouteservice.org https://msearch.gsi.go.jp https://*.tile.openstreetmap.org https://unpkg.com;
         base-uri 'self';
         form-action 'self';
     ">
