@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- セキュリティ: Content Security Policy (CSP) ※frame-ancestorsを削除し、unpkg.comを追加 -->
+    <!-- セキュリティ: Content Security Policy (CSP) の調整 -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;
@@ -588,7 +588,7 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin="anonymous"></script>
 
-<!-- html2canvas 安定版 CDN (jsDelivr) への変更 -->
+<!-- html2canvas 安定版 CDN (jsDelivr) -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
@@ -621,7 +621,6 @@ window.addEventListener("DOMContentLoaded", () => {
         document.getElementById("appAuthLoading").classList.add("hidden");
         document.getElementById("searchMenu").classList.remove("hidden");
 
-        // 初期パンくずを設定
         setBreadcrumbStep("search");
 
         if (!ORS_API_KEY) {
@@ -633,7 +632,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 現在地から検索 ボタン押下時
 document.getElementById("btnChooseCurrent").addEventListener("click", () => {
     searchMode = "current";
     document.getElementById("searchMenu").classList.add("hidden");
@@ -644,12 +642,9 @@ document.getElementById("btnChooseCurrent").addEventListener("click", () => {
     document.getElementById("formTitle").textContent = "現在地からの避難設定";
     document.getElementById("formCard").classList.remove("hidden");
     hideError();
-
-    // パンくずを条件指定へ更新
     setBreadcrumbStep("form");
 });
 
-// 特定地域から検索 ボタン押下時
 document.getElementById("btnChooseArea").addEventListener("click", () => {
     searchMode = "area";
     document.getElementById("searchMenu").classList.add("hidden");
@@ -659,20 +654,13 @@ document.getElementById("btnChooseArea").addEventListener("click", () => {
     document.getElementById("formTitle").textContent = "指定地域からの避難設定";
     document.getElementById("formCard").classList.remove("hidden");
     hideError();
-
-    // パンくずを条件指定へ更新
     setBreadcrumbStep("form");
 });
 
-// 条件を変更する ボタン押下時
 document.getElementById("btnBackToForm").addEventListener("click", () => {
     showFormStep();
 });
 
-/**
- * パンくずリストを動的に更新する関数
- * @param {Array<{label: string, url?: string, action?: Function}>} items 
- */
 function updateBreadcrumbs(items) {
     const container = document.getElementById("breadcrumbList");
     if (!container) return;
@@ -686,13 +674,11 @@ function updateBreadcrumbs(items) {
         const isLast = (index === items.length - 1);
 
         if (isLast) {
-            // 現在地（末尾）
             const span = document.createElement("span");
             span.setAttribute("aria-current", "page");
             span.textContent = item.label;
             li.appendChild(span);
         } else {
-            // リンク・戻り遷移用
             const a = document.createElement("a");
             a.textContent = item.label;
 
@@ -712,7 +698,6 @@ function updateBreadcrumbs(items) {
     });
 }
 
-// 各画面に戻るための関数定義
 function showSearchMenuStep() {
     document.getElementById("formCard").classList.add("hidden");
     document.getElementById("previewCard").classList.add("hidden");
@@ -730,7 +715,6 @@ function showFormStep() {
     setTimeout(() => { if (map) map.invalidateSize(); }, 300);
 }
 
-// 画面状態に応じたパンくずの切り替え
 function setBreadcrumbStep(step) {
     const baseNav = { label: "初期設定", url: "index.html" };
 
@@ -783,7 +767,6 @@ window.addEventListener("resize", () => {
 function initializeMap() {
     map = L.map("map-area", { preferCanvas: true }).setView([36.305721, 138.99585], 13);
     
-    // OpenStreetMap Tile API（標準タイル）に変更
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         crossOrigin: 'anonymous',
@@ -827,7 +810,6 @@ document.getElementById("btnExecuteSearch").addEventListener("click", async () =
         const shelter = await fetchEmergencyShelter(startLat, startLng, disasterType);
         const route = await getORSRoute(startLat, startLng, shelter.latitude, shelter.longitude, profileType);
 
-        // 安全なテキスト設定 (XSS防止)
         document.getElementById("out-shelter-name").textContent = shelter.place_name;
         document.getElementById("out-start-name").textContent = startName;
         document.getElementById("out-address").textContent = shelter.address || "-";
@@ -1097,6 +1079,7 @@ function getFileDate() {
 }
 </script>
 
+<!-- Service Workerを使用しない場合は、以下のブロックを削除してください -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
