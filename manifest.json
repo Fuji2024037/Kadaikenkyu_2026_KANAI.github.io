@@ -1,6 +1,6 @@
 {
-  "name": "避難マップアプリ",
-  "short_name": "避難マップ",
+  "name": "エマミル",
+  "short_name": "エマミル",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0f3f6",
